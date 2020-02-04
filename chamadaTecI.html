@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+  <link rel="stylesheet" href="theme.css" type="text/css">
+  <title>Chamada Sistemas Estruturais</title>
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+
+    
+
+
+
+    <div class="container-fluid">
+
+        <div>
+            <div class="form-group row">
+                <label for="date-input" class="col-2 col-form-label">Data</label>
+                <div class="col-10">
+                    <input class="form-control" type="date" value="" id="date-input">
+                </div>
+            </div>
+        </div>
+        <script>
+            function pad_with_zeroes(number, length) {
+                var my_string = '' + number;
+                while (my_string.length < length) {
+                    my_string = '0' + my_string;
+                }
+                return my_string;
+            }
+            n =  new Date();
+            y = n.getFullYear();
+            m = pad_with_zeroes(n.getMonth()+1,2);
+            d = pad_with_zeroes(n.getDate(),2);
+            document.getElementById("date-input").value = y + "-" + m + "-" + d;
+        </script>
+
+
+        <div class="row">
+            <table class="table" id="tabelaAlunos">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Nome</th>
+                    <th scope="col">Presente</th>
+                </tr>
+                </thead>
+                <tbody>
+               
+                </tbody>
+            </table>
+        </div>
+
+        <div>
+            <button type="button" class="btn btn-success" id="download" onclick="makeTable()" >Confirma</button>
+        </div>
+
+    </div>
+
+    <script type="text/javascript"charset="utf-8">
+        
+        $(document).ready(function() {
+            $.ajax({
+                type: "GET",
+                url: "alunosTecI.csv",
+                dataType: "text",
+                charset: "iso-8859-15",
+                success: function(data) {processData(data);}
+            });
+        });
+
+        function processData(AlunosTxt) {
+            var Alunos = AlunosTxt.split("\n");
+            Alunos.forEach(function callback(Nome, index){
+                var table = document.getElementById("tabelaAlunos");
+                var body = table.getElementsByTagName('tbody')[0];
+                var row = body.insertRow(-1);
+                var cellIndex = row.insertCell(0);
+                var cellNome = row.insertCell(1);
+                cellNome.className ="nome";
+                var cellPresenca = row.insertCell(2);
+                cellPresenca.className ="presenca";
+                cellIndex.innerHTML = index+1;
+                cellNome.innerHTML=Nome;
+                console.log(Nome);
+                cellPresenca.innerHTML="S";
+                $(row).click(function()  {
+                    if($(this).find('.presenca').html()=="S"){
+                        $(this).find('.presenca').html("N");
+                        $(this).attr('style',"background: #ffb3b3;");
+                    }else{
+                        $(this).find('.presenca').html("S");
+                        $(this).attr('style',"background: white;");
+                    }
+                })
+            })
+        }
+
+    </script>
+
+    <script>
+
+        function printTable(){
+            var presencaTxt ="";
+            $('#tabelaAlunos > tbody tr').each(function(){
+                if($(this).find('.presenca')){
+                    presencaTxt+=$(this).find('.nome').html()+"; ";
+                    presencaTxt+=$(this).find('.presenca').html()+";\n";}
+            })
+            return presencaTxt;
+        }
+
+        function getDate(){
+            var input = document.getElementById("date-input").value
+            return input
+        }
+
+        function makeTable() {
+            var file = new Blob([printTable()], {type: 'text/plain'});
+            var a = document.createElement("a"),
+                url = URL.createObjectURL(file);
+            a.href = URL.createObjectURL(file);
+            document.body.appendChild(a);
+            a.download = getDate()+"_Chamada_Tec_1";
+            a.click();
+            setTimeout(function() {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);  
+            }, 0); 
+        }
+    </script>
+</body>
+
+</html>
